@@ -222,6 +222,9 @@ impl ClientCapabilities {
 #[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[non_exhaustive]
 pub struct ServerCapabilities {
+    /// Additional top-level capabilities. Keys must not shadow named fields.
+    #[serde(flatten, default)]
+    pub custom: BTreeMap<String, Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub experimental: Option<ExperimentalCapabilities>,
     /// Optional MCP extensions that the server supports (SEP-1724).
@@ -273,7 +276,7 @@ impl ServerCapabilities {
 
 #[cfg(any(feature = "server", feature = "macros"))]
 macro_rules! builder {
-    ($Target: ident {$($(#[$fa:meta])* $f: ident: $T: ty),* $(,)?}) => {
+    ($Target: ident {$($(#[$fa:meta])* $f: ident: $T: ty),* $(,)?} $(defaults {$($extra:ident: $value:expr),* $(,)?})?) => {
         paste! {
             #[derive(Default, Clone, Copy, Debug)]
             #[expect(clippy::exhaustive_structs, reason = "intentionally exhaustive")]
@@ -296,6 +299,7 @@ macro_rules! builder {
                 pub fn build(self) -> $Target {
                     $Target {
                         $( $f: self.$f, )*
+                        $($($extra: $value,)*)?
                     }
                 }
             }
@@ -396,6 +400,7 @@ builder! {
         resources: ResourcesCapability,
         tools: ToolsCapability,
     }
+    defaults { custom: BTreeMap::new() }
 }
 
 #[cfg(any(feature = "server", feature = "macros"))]

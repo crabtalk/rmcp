@@ -51,6 +51,8 @@ below. For the full MCP specification, see
 
 ## Usage
 
+`ServerCapabilities::custom` preserves additional top-level capability fields when reading and writing protocol messages. Populate it after building capabilities, for example `capabilities.custom.insert("events".into(), serde_json::json!({}));`. Custom keys must not shadow named capability fields. Protocol handlers and delivery for custom capabilities are supplied by the application.
+
 ### Import the crate
 
 Add the latest published version with cargo:
